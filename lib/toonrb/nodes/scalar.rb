@@ -11,6 +11,18 @@ module Toonrb
       attr_reader :token
     end
 
+    class QuotedString < Scalar
+      def to_ruby
+        token.text[1..-2]
+      end
+    end
+
+    class UnquotedString < Scalar
+      def to_ruby
+        token.text
+      end
+    end
+
     class Boolean < Scalar
       def to_ruby
         token.text == 'true'

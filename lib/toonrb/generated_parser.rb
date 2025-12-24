@@ -11,16 +11,18 @@ module Toonrb
 ##### State transition tables begin ###
 
 racc_action_table = [
-     2,     8,     5,     6,     7 ]
+     2,    10,     5,     6,     7,     8,     9 ]
 
 racc_action_check = [
-     1,     2,     1,     1,     1 ]
+     1,     2,     1,     1,     1,     1,     1 ]
 
 racc_action_pointer = [
-   nil,     0,     1,   nil,   nil,   nil,   nil,   nil,   nil ]
+   nil,     0,     1,   nil,   nil,   nil,   nil,   nil,   nil,   nil,
+   nil ]
 
 racc_action_default = [
-    -1,   -10,   -10,    -3,    -5,    -7,    -8,    -9,     9 ]
+    -1,   -12,   -12,    -3,    -5,    -7,    -8,    -9,   -10,   -11,
+    11 ]
 
 racc_goto_table = [
      1,     3,     4 ]
@@ -36,28 +38,32 @@ racc_goto_default = [
 
 racc_reduce_table = [
   0, 0, :racc_error,
-  0, 6, :_reduce_none,
-  0, 6, :_reduce_none,
-  2, 6, :_reduce_none,
-  0, 7, :_reduce_none,
-  1, 7, :_reduce_5,
   0, 8, :_reduce_none,
-  1, 8, :_reduce_7,
-  1, 8, :_reduce_8,
-  1, 8, :_reduce_9 ]
+  0, 8, :_reduce_none,
+  2, 8, :_reduce_none,
+  0, 9, :_reduce_none,
+  1, 9, :_reduce_5,
+  0, 10, :_reduce_none,
+  1, 10, :_reduce_7,
+  1, 10, :_reduce_8,
+  1, 10, :_reduce_9,
+  1, 10, :_reduce_10,
+  1, 10, :_reduce_11 ]
 
-racc_reduce_n = 10
+racc_reduce_n = 12
 
-racc_shift_n = 9
+racc_shift_n = 11
 
 racc_token_table = {
   false => 0,
   :error => 1,
-  :BOOLEAN => 2,
-  :NULL => 3,
-  :NUMBER => 4 }
+  :QUOTED_STRING => 2,
+  :UNQUOTED_STRING => 3,
+  :BOOLEAN => 4,
+  :NULL => 5,
+  :NUMBER => 6 }
 
-racc_nt_base = 5
+racc_nt_base = 7
 
 racc_use_result_var = true
 
@@ -81,6 +87,8 @@ Ractor.make_shareable(Racc_arg) if defined?(Ractor)
 Racc_token_to_s_table = [
   "$end",
   "error",
+  "QUOTED_STRING",
+  "UNQUOTED_STRING",
   "BOOLEAN",
   "NULL",
   "NUMBER",
@@ -116,7 +124,7 @@ module_eval(<<'.,.,', 'toon.y', 10)
 
 module_eval(<<'.,.,', 'toon.y', 15)
   def _reduce_7(val, _values, result)
-            result = Toonrb::Nodes::Boolean.new(val[0])
+            result = Toonrb::Nodes::QuotedString.new(val[0])
 
     result
   end
@@ -124,7 +132,7 @@ module_eval(<<'.,.,', 'toon.y', 15)
 
 module_eval(<<'.,.,', 'toon.y', 18)
   def _reduce_8(val, _values, result)
-            result = Toonrb::Nodes::Null.new(val[0])
+            result = Toonrb::Nodes::UnquotedString.new(val[0])
 
     result
   end
@@ -132,6 +140,22 @@ module_eval(<<'.,.,', 'toon.y', 18)
 
 module_eval(<<'.,.,', 'toon.y', 21)
   def _reduce_9(val, _values, result)
+            result = Toonrb::Nodes::Boolean.new(val[0])
+
+    result
+  end
+.,.,
+
+module_eval(<<'.,.,', 'toon.y', 24)
+  def _reduce_10(val, _values, result)
+            result = Toonrb::Nodes::Null.new(val[0])
+
+    result
+  end
+.,.,
+
+module_eval(<<'.,.,', 'toon.y', 27)
+  def _reduce_11(val, _values, result)
             result = Toonrb::Nodes::Number.new(val[0])
 
     result
