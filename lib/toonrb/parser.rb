@@ -4,13 +4,13 @@ module Toonrb
   class Parser < GeneratedParser
     def initialize(scanner)
       @scanner = scanner
-      @handler = Handler.new
+      @root = Nodes::Root.new
       super()
     end
 
     def parse
       do_parse
-      @handler.output
+      @root
     end
 
     private

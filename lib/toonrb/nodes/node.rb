@@ -3,11 +3,11 @@
 module Toonrb
   module Nodes
     class Node
-      def initialize
-        @children = []
+      def initialize(head_token)
+        @head_token = head_token
       end
 
-      attr_reader :children
+      attr_reader :head_token
     end
   end
 end

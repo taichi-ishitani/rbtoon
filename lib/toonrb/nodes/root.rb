@@ -3,8 +3,15 @@
 module Toonrb
   module Nodes
     class Root < Node
+      def initialize
+        @items = []
+        super(nil)
+      end
+
+      attr_reader :items
+
       def to_ruby
-        children.first&.to_ruby
+        @items.first&.to_ruby
       end
     end
   end

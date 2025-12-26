@@ -2,14 +2,27 @@
 
 module Toonrb
   class Scanner
-    BOOLEAN = /(?:true|false)\b/
+    L_BRACKET = /\[/
 
-    NULL = /null\b/
+    R_BRACKET = /]/
 
-    NUMBER = /-?(?:0|[1-9]\d*)(?:\.\d+)?(?:e[+-]?\d+)?\b/i
+    L_BRACE = /{/
+
+    R_BRACE = /}/
+
+    COLON = /:/
+
+    DELIMITER = /[,\t|]/
+
+    BOOLEAN = /\A(?:true|false)\Z/
+
+    NULL = /\Anull\Z/
+
+    NUMBER = /\A-?(?:0|[1-9]\d*)(?:\.\d+)?(?:e[+-]?\d+)?\Z/i
 
     def initialize(string, filename)
       @ss = StringScanner.new(string)
+      @delimiter = []
       @filename = filename
       @line = 1
       @column = 1
@@ -22,23 +35,26 @@ module Toonrb
       [token.kind, token]
     end
 
+    def push_delimiter(delimiter)
+      @delimiter << delimiter
+    end
+
+    def pop_delimiter
+      @delimiter.pop
+    end
+
     private
 
     def scan_token
       return if eos?
 
-      case
-      when (text, line, column = scan_quoted_string)
-        create_token(:QUOTED_STRING, text, line, column)
-      when (text, line, column = scan(BOOLEAN))
-        create_token(:BOOLEAN, text, line, column)
-      when (text, line, column = scan(NULL))
-        create_token(:NULL, text, line, column)
-      when (text, line, column = scan(NUMBER))
-        create_token(:NUMBER, text, line, column)
-      when (text, line, column = scan_unquoted_string)
-        create_token(:UNQUOTED_STRING, text, line, column)
-      end
+      token = scan_symbol
+      return token if token
+
+      token = scan_quoted_string
+      return token if token
+
+      scan_unquoted_string
     end
 
     def eos?
@@ -65,16 +81,50 @@ module Toonrb
       char
     end
 
+    def peek(pattern)
+      @ss.check(pattern)
+    end
+
+    def advance(char)
+      @ss.pos += char.bytesize
+      update_state(char)
+    end
+
+    def update_state(text)
+      @column += text.length
+    end
+
+    def scan_symbol
+      char = peek(/./)
+      return unless char
+
+      {
+        L_BRACKET: L_BRACKET, R_BRACKET: R_BRACKET,
+        L_BRACE: L_BRACE, R_BRACE: R_BRACE, COLON: COLON, DELIMITER: DELIMITER
+      }.each do |kind, symbol|
+        next unless symbol.match?(char)
+
+        token = create_token(kind, char, @line, @column)
+        advance(char)
+        return token
+      end
+
+      nil
+    end
+
     def scan_quoted_string
-      return if @ss.peek(1) != '"'
+      return unless peek(/"/)
 
       line = @line
       column = @column
 
       buffer = []
       while (char = scan_char)
-        if char != '\\' || (char = scan_escaped_char)
+        if char == '\\' && (escaped_char = scan_escaped_char)
+          buffer << escaped_char
+        else
           buffer << char
+          break if buffer.size >= 2 && char == '"'
         end
       end
 
@@ -84,7 +134,7 @@ module Toonrb
       end
 
       text = buffer.join
-      [text, line, column]
+      create_token(:QUOTED_STRING, text, line, column)
     end
 
     def scan_escaped_char
@@ -104,20 +154,33 @@ module Toonrb
       column = @column
 
       buffer = []
-      while (char = scan_char)
-        buffer << char
+      while (char = peek(/./))
+        break if match_header_symbol?(char) || match_eol?(char) || match_delimiter?(char)
 
-        break if @ss.peek(1) == "\n"
+        advance(char)
+        buffer << char
       end
 
-      return nil if buffer.empty?
+      text = buffer.join.strip
+      { BOOLEAN: BOOLEAN, NULL: NULL, NUMBER: NUMBER }.each do |kind, pattern|
+        return create_token(kind, text, line, column) if pattern.match?(text)
+      end
 
-      text = buffer.join
-      [text, line, column]
+      create_token(:UNQUOTED_STRING, text, line, column)
     end
 
-    def update_state(text)
-      @column += text.length
+    def match_header_symbol?(char)
+      [L_BRACKET, R_BRACKET, L_BRACE, R_BRACE, COLON].any? { |symbol| symbol.match?(char) }
+    end
+
+    def match_eol?(char)
+      char == "\n"
+    end
+
+    def match_delimiter?(char)
+      return false if @delimiter.empty?
+
+      char == @delimiter.last
     end
 
     def create_token(kind, text, line, column)

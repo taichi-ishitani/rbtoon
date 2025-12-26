@@ -13,7 +13,7 @@ unless ENV.key?('CI')
 
   desc 'generate Toon parser'
   file 'lib/toonrb/generated_parser.rb' => 'toon.y' do
-    sh 'racc toon.y -F -t -o lib/toonrb/generated_parser.rb'
+    sh 'bundle exec racc toon.y -v -F -t -o lib/toonrb/generated_parser.rb'
   end
 
   task test: ['lib/toonrb/generated_parser.rb']

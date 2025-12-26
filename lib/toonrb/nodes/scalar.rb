@@ -3,12 +3,7 @@
 module Toonrb
   module Nodes
     class Scalar < Node
-      def initialize(token)
-        @token = token
-        super()
-      end
-
-      attr_reader :token
+      alias_method :token, :head_token
     end
 
     class QuotedString < Scalar

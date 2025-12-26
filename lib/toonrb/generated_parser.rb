@@ -11,59 +11,76 @@ module Toonrb
 ##### State transition tables begin ###
 
 racc_action_table = [
-     2,    10,     5,     6,     7,     8,     9 ]
+     2,    13,     7,    16,    17,    19,     8,     9,    10,    11,
+    12,     8,     9,    10,    11,    12,     8,     9,    10,    11,
+    12,    21,    22 ]
 
 racc_action_check = [
-     1,     2,     1,     1,     1,     1,     1 ]
+     1,     2,     1,     7,    14,    16,     1,     1,     1,     1,
+     1,     6,     6,     6,     6,     6,    17,    17,    17,    17,
+    17,    18,    21 ]
 
 racc_action_pointer = [
-   nil,     0,     1,   nil,   nil,   nil,   nil,   nil,   nil,   nil,
-   nil ]
+   nil,     0,     1,   nil,   nil,   nil,     5,    -7,   nil,   nil,
+   nil,   nil,   nil,   nil,    -1,   nil,     0,    10,    18,   nil,
+   nil,    18,   nil ]
 
 racc_action_default = [
-    -1,   -12,   -12,    -3,    -5,    -7,    -8,    -9,   -10,   -11,
-    11 ]
+    -1,   -17,   -17,    -2,    -3,    -4,    -9,   -17,   -12,   -13,
+   -14,   -15,   -16,    23,    -5,   -10,    -7,   -17,   -17,    -8,
+   -11,   -17,    -6 ]
 
 racc_goto_table = [
-     1,     3,     4 ]
+     5,     1,     3,     4,     6,    15,    14,    18,   nil,   nil,
+   nil,   nil,   nil,   nil,   nil,   nil,    20 ]
 
 racc_goto_check = [
-     1,     2,     3 ]
+     4,     1,     2,     3,     5,     4,     6,     7,   nil,   nil,
+   nil,   nil,   nil,   nil,   nil,   nil,     4 ]
 
 racc_goto_pointer = [
-   nil,     0,     0,     1 ]
+   nil,     1,     1,     2,    -1,     3,     0,    -9 ]
 
 racc_goto_default = [
-   nil,   nil,   nil,   nil ]
+   nil,   nil,   nil,   nil,   nil,   nil,   nil,   nil ]
 
 racc_reduce_table = [
   0, 0, :racc_error,
-  0, 8, :_reduce_none,
-  0, 8, :_reduce_none,
-  2, 8, :_reduce_none,
-  0, 9, :_reduce_none,
-  1, 9, :_reduce_5,
-  0, 10, :_reduce_none,
-  1, 10, :_reduce_7,
-  1, 10, :_reduce_8,
-  1, 10, :_reduce_9,
-  1, 10, :_reduce_10,
-  1, 10, :_reduce_11 ]
+  0, 12, :_reduce_none,
+  2, 12, :_reduce_2,
+  1, 13, :_reduce_none,
+  1, 13, :_reduce_none,
+  2, 14, :_reduce_5,
+  5, 16, :_reduce_6,
+  0, 18, :_reduce_7,
+  1, 18, :_reduce_8,
+  0, 17, :_reduce_none,
+  1, 17, :_reduce_10,
+  3, 17, :_reduce_11,
+  1, 15, :_reduce_12,
+  1, 15, :_reduce_13,
+  1, 15, :_reduce_14,
+  1, 15, :_reduce_15,
+  1, 15, :_reduce_16 ]
 
-racc_reduce_n = 12
+racc_reduce_n = 17
 
-racc_shift_n = 11
+racc_shift_n = 23
 
 racc_token_table = {
   false => 0,
   :error => 1,
-  :QUOTED_STRING => 2,
-  :UNQUOTED_STRING => 3,
-  :BOOLEAN => 4,
-  :NULL => 5,
-  :NUMBER => 6 }
+  :L_BRACKET => 2,
+  :R_BRACKET => 3,
+  :COLON => 4,
+  :DELIMITER => 5,
+  :QUOTED_STRING => 6,
+  :UNQUOTED_STRING => 7,
+  :BOOLEAN => 8,
+  :NULL => 9,
+  :NUMBER => 10 }
 
-racc_nt_base = 7
+racc_nt_base = 11
 
 racc_use_result_var = true
 
@@ -87,15 +104,23 @@ Ractor.make_shareable(Racc_arg) if defined?(Ractor)
 Racc_token_to_s_table = [
   "$end",
   "error",
+  "L_BRACKET",
+  "R_BRACKET",
+  "COLON",
+  "DELIMITER",
   "QUOTED_STRING",
   "UNQUOTED_STRING",
   "BOOLEAN",
   "NULL",
   "NUMBER",
   "$start",
-  "root_objects",
-  "root_object",
-  "primitive" ]
+  "root",
+  "root_item",
+  "inline_array",
+  "primitive",
+  "array_header",
+  "inline_array_values",
+  "delimiter" ]
 Ractor.make_shareable(Racc_token_to_s_table) if defined?(Ractor)
 
 Racc_debug_parser = true
@@ -106,56 +131,104 @@ Racc_debug_parser = true
 
 # reduce 1 omitted
 
-# reduce 2 omitted
-
-# reduce 3 omitted
-
-# reduce 4 omitted
-
-module_eval(<<'.,.,', 'toon.y', 10)
-  def _reduce_5(val, _values, result)
-            @handler.push_child(val[0])
+module_eval(<<'.,.,', 'toon.y', 16)
+  def _reduce_2(val, _values, result)
+            @root.items << val[1]
 
     result
   end
 .,.,
 
-# reduce 6 omitted
+# reduce 3 omitted
 
-module_eval(<<'.,.,', 'toon.y', 15)
+# reduce 4 omitted
+
+module_eval(<<'.,.,', 'toon.y', 26)
+  def _reduce_5(val, _values, result)
+          header = val[0]
+      values = val[1]
+      result = Nodes::Array.new(header[0], header[1], values)
+
+    result
+  end
+.,.,
+
+module_eval(<<'.,.,', 'toon.y', 32)
+  def _reduce_6(val, _values, result)
+            result = val
+
+    result
+  end
+.,.,
+
+module_eval(<<'.,.,', 'toon.y', 36)
   def _reduce_7(val, _values, result)
+            @scanner.push_delimiter(',')
+
+    result
+  end
+.,.,
+
+module_eval(<<'.,.,', 'toon.y', 39)
+  def _reduce_8(val, _values, result)
+            @scanner.push_delimiter(val[0].text)
+
+    result
+  end
+.,.,
+
+# reduce 9 omitted
+
+module_eval(<<'.,.,', 'toon.y', 45)
+  def _reduce_10(val, _values, result)
+            result = [val[0]]
+
+    result
+  end
+.,.,
+
+module_eval(<<'.,.,', 'toon.y', 48)
+  def _reduce_11(val, _values, result)
+            result << val[2]
+
+    result
+  end
+.,.,
+
+module_eval(<<'.,.,', 'toon.y', 54)
+  def _reduce_12(val, _values, result)
             result = Toonrb::Nodes::QuotedString.new(val[0])
 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'toon.y', 18)
-  def _reduce_8(val, _values, result)
+module_eval(<<'.,.,', 'toon.y', 57)
+  def _reduce_13(val, _values, result)
             result = Toonrb::Nodes::UnquotedString.new(val[0])
 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'toon.y', 21)
-  def _reduce_9(val, _values, result)
+module_eval(<<'.,.,', 'toon.y', 60)
+  def _reduce_14(val, _values, result)
             result = Toonrb::Nodes::Boolean.new(val[0])
 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'toon.y', 24)
-  def _reduce_10(val, _values, result)
+module_eval(<<'.,.,', 'toon.y', 63)
+  def _reduce_15(val, _values, result)
             result = Toonrb::Nodes::Null.new(val[0])
 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'toon.y', 27)
-  def _reduce_11(val, _values, result)
+module_eval(<<'.,.,', 'toon.y', 66)
+  def _reduce_16(val, _values, result)
             result = Toonrb::Nodes::Number.new(val[0])
 
     result
