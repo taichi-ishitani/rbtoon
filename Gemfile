@@ -13,11 +13,11 @@ group 'development_common' do
 end
 
 group 'development_test' do
-  gem 'minitest', '~> 5.16', require: false
+  gem 'minitest', require: false
 end
 
 group 'development_lint' do
-  gem 'rubocop', '~> 1.81.1', require: false
+  gem 'rubocop', '~> 1.82.1', require: false
 end
 
 group 'development_local' do
