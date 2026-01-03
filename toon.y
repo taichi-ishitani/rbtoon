@@ -69,38 +69,35 @@ rule
   array
     : array_header eol {
         handler.pop
-        scanner.clear_delimiter
+        scanner.reset_delimiters
       }
     | array_header inline_array_values eol {
         handler.pop
-        scanner.clear_delimiter
+        scanner.reset_delimiters
       }
-    | array_header eol PUSH_INDENT list_array_values POP_INDENT {
+    | array_header eol PUSH_INDENT list_array_items POP_INDENT {
         handler.pop
-        scanner.clear_delimiter
       }
     | tebular_array_header eol {
         handler.pop
-        scanner.clear_delimiter
+        scanner.reset_delimiters
       }
     | tebular_array_header eol PUSH_INDENT tabular_rows POP_INDENT {
         handler.pop
-        scanner.clear_delimiter
+        scanner.reset_delimiters
       }
   array_header
     : array_header_common COLON
   tebular_array_header
     : array_header_common L_BRACE tabular_fields R_BRACE COLON
   array_header_common
-    : L_BRACKET number delimiter R_BRACKET {
+    : array_header_start number DELIMITER? R_BRACKET {
+        scanner.delimiter(val[2])
         handler.push_array(val[0], val[1])
       }
-  delimiter
-    : {
-        scanner.default_delimiter
-      }
-    | DELIMITER {
-        scanner.delimiter(val[0])
+  array_header_start
+    : L_BRACKET {
+        scanner.any_delimiters
       }
   tabular_fields
     : string (DELIMITER string)* {
@@ -110,18 +107,22 @@ rule
     : primitive (DELIMITER primitive)* {
         each_list_item(val) { |v, _| handler.push_value(v) }
       }
-  list_array_values
-    : list_array_value+
+  list_array_items
+    : list_array_items_start list_array_value (HYPHEN list_array_value)*
+  list_array_items_start
+    : HYPHEN {
+        scanner.reset_delimiters
+      }
   list_array_value
-    : HYPHEN eol {
+    : eol {
         position = scanner.current_position
         handler.push_empty_object(position)
       }
-    | HYPHEN primitive eol {
-        handler.push_value(val[1])
+    | primitive eol {
+        handler.push_value(val[0])
       }
-    | HYPHEN array
-    | HYPHEN object
+    | array
+    | object
   tabular_rows
     : (tabular_row eol)+
   tabular_row

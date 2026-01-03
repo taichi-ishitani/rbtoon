@@ -341,5 +341,275 @@ module Toonrb
       JSON
       assert_equal(load_json(json), load_toon(toon))
     end
+
+    def test_delimiter
+      toon = <<~'TOON'
+        tags[3	]: reading	gaming	coding
+      TOON
+      json = <<~'JSON'
+        {"tags":["reading","gaming","coding"]}
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        tags[3|]: reading|gaming|coding
+      TOON
+      json = <<~'JSON'
+        {"tags":["reading","gaming","coding"]}
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        tags[3]: reading,gaming,coding
+      TOON
+      json = <<~'JSON'
+        {"tags":["reading","gaming","coding"]}
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        items[2	]{sku	qty	price}:
+          A1	2	9.99
+          B2	1	14.5
+      TOON
+      json = <<~'JSON'
+        {"items":[{"sku":"A1","qty":2,"price":9.99},{"sku":"B2","qty":1,"price":14.5}]}
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        items[2|]{sku|qty|price}:
+          A1|2|9.99
+          B2|1|14.5
+      TOON
+      json = <<~'JSON'
+        {"items":[{"sku":"A1","qty":2,"price":9.99},{"sku":"B2","qty":1,"price":14.5}]}
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        pairs[2	]:
+          - [2	]: a	b
+          - [2	]: c	d
+      TOON
+      json = <<~'JSON'
+        {"pairs":[["a","b"],["c","d"]]}
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        pairs[2|]:
+          - [2|]: a|b
+          - [2|]: c|d
+      TOON
+      json = <<~'JSON'
+        {"pairs":[["a","b"],["c","d"]]}
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        items[1	]:
+          - tags[3]: a,b,c
+      TOON
+      json = <<~'JSON'
+        {"items":[{"tags":["a","b","c"]}]}
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        items[1	]:
+          - tags[3|]: a|b|c
+      TOON
+      json = <<~'JSON'
+        {"items":[{"tags":["a","b","c"]}]}
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        items[1|]:
+          - tags[3]: a,b,c
+      TOON
+      json = <<~'JSON'
+        {"items":[{"tags":["a","b","c"]}]}
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        items[1|]:
+          - tags[3	]: a	b	c
+      TOON
+      json = <<~'JSON'
+        {"items":[{"tags":["a","b","c"]}]}
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        [3	]: x	y	z
+      TOON
+      json = <<~'JSON'
+        ["x","y","z"]
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        [3|]: x|y|z
+      TOON
+      json = <<~'JSON'
+        ["x","y","z"]
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        [2	]{id}:
+          1
+          2
+      TOON
+      json = <<~'JSON'
+        [{"id":1},{"id":2}]
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        [2|]{id}:
+          1
+          2
+      TOON
+      json = <<~'JSON'
+        [{"id":1},{"id":2}]
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        items[3	]: a	"b\tc"	d
+      TOON
+      json = <<~'JSON'
+        {"items":["a","b\tc","d"]}
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        items[3|]: a|"b|c"|d
+      TOON
+      json = <<~'JSON'
+        {"items":["a","b|c","d"]}
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        items[2	]: a,b	c,d
+      TOON
+      json = <<~'JSON'
+        {"items":["a,b","c,d"]}
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        items[2|]: a,b|c,d
+      TOON
+      json = <<~'JSON'
+        {"items":["a,b","c,d"]}
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        items[2]{id,note}:
+          1,"a,b"
+          2,"c,d"
+      TOON
+      json = <<~'JSON'
+        {"items":[{"id":1,"note":"a,b"},{"id":2,"note":"c,d"}]}
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        items[2	]{id	note}:
+          1	a,b
+          2	c,d
+      TOON
+      json = <<~'JSON'
+        {"items":[{"id":1,"note":"a,b"},{"id":2,"note":"c,d"}]}
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        items[2	]:
+          - status: a,b
+          - status: c,d
+      TOON
+      json = <<~'JSON'
+        {"items":[{"status":"a,b"},{"status":"c,d"}]}
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        items[2]:
+          - status: "a,b"
+          - status: "c,d"
+      TOON
+      json = <<~'JSON'
+        {"items":[{"status":"a,b"},{"status":"c,d"}]}
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        pairs[1|]:
+          - [2|]: a|"b|c"
+      TOON
+      json = <<~'JSON'
+        {"pairs":[["a","b|c"]]}
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        pairs[1	]:
+          - [2	]: a	"b\tc"
+      TOON
+      json = <<~'JSON'
+        {"pairs":[["a","b\tc"]]}
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        items[3|]: "true"|"42"|"-3.14"
+      TOON
+      json = <<~'JSON'
+        {"items":["true","42","-3.14"]}
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        items[3	]: "true"	"42"	"-3.14"
+      TOON
+      json = <<~'JSON'
+        {"items":["true","42","-3.14"]}
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        items[3|]: "[5]"|"{key}"|"- item"
+      TOON
+      json = <<~'JSON'
+        {"items":["[5]","{key}","- item"]}
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        items[3	]: "[5]"	"{key}"	"- item"
+      TOON
+      json = <<~'JSON'
+        {"items":["[5]","{key}","- item"]}
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+
+      toon = <<~'TOON'
+        items[2|]{"a|b"}:
+          1
+          2
+      TOON
+      json = <<~'JSON'
+        {"items":[{"a|b":1},{"a|b":2}]}
+      JSON
+      assert_equal(load_json(json), load_toon(toon))
+    end
   end
 end

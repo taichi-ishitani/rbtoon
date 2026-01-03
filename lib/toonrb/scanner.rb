@@ -37,7 +37,7 @@ module Toonrb
       @filename = filename
       @line = 1
       @column = 1
-      @delimiter = nil
+      @delimiters = []
       @indent_size = indent_size.to_f
       @indent_depth = 0
       @list_depth = []
@@ -57,16 +57,19 @@ module Toonrb
       token && [token.kind, token]
     end
 
-    def default_delimiter
-      @delimiter = ','
+    def any_delimiters
+      @delimiters << ','
+      @delimiters << '|'
+      @delimiters << "\t"
     end
 
     def delimiter(token)
-      @delimiter = token.text[0]
+      reset_delimiters
+      @delimiters << ((token && token.text[0]) || ',')
     end
 
-    def clear_delimiter
-      @delimiter = nil
+    def reset_delimiters
+      @delimiters.clear
     end
 
     def current_position
@@ -303,11 +306,7 @@ module Toonrb
     end
 
     def match_delimiter?(char)
-      if @delimiter
-        char == @delimiter
-      else
-        DELIMITER.match?(char)
-      end
+      @delimiters.include?(char)
     end
 
     def create_token(kind, text, line, column)
