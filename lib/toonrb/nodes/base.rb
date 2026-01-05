@@ -11,7 +11,7 @@ module Toonrb
 
       attr_reader :position
 
-      def validate(strict:)
+      def validate(strict: true, path_expansion: false)
       end
     end
   end

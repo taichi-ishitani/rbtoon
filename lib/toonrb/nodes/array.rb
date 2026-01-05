@@ -29,14 +29,14 @@ module Toonrb
         end
       end
 
-      def to_ruby
+      def to_ruby(**optargs)
         values = values_without_blank
         if tabular?
-          fields = values_to_ruby(@fields)
+          fields = values_to_ruby(@fields, **optargs)
           values
-            .map { |row| fields.zip(values_to_ruby(row)).to_h }
+            .map { |row| fields.zip(values_to_ruby(row, **optargs)).to_h }
         else
-          values_to_ruby(values) || []
+          values_to_ruby(values, **optargs) || []
         end
       end
 
@@ -103,8 +103,8 @@ module Toonrb
         end
       end
 
-      def values_to_ruby(values)
-        values&.map(&:to_ruby)
+      def values_to_ruby(values, **optargs)
+        values&.map { |value| value.to_ruby(**optargs) }
       end
     end
   end

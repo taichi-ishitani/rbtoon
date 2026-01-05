@@ -15,10 +15,10 @@ module Toonrb
         end
       end
 
-      def to_ruby
+      def to_ruby(**optargs)
         return {} unless @values
 
-        @values.first.to_ruby
+        @values.first.to_ruby(**optargs)
       end
 
       def kind

@@ -18,7 +18,7 @@ require_relative 'toonrb/parser'
 
 module Toonrb
   class << self
-    def load(string_or_io, filename: nil, strict: true, indent_size: 2)
+    def load(string_or_io, filename: nil, strict: true, path_expansion: false, indent_size: 2)
       toon =
         if string_or_io.is_a?(String)
           string_or_io
@@ -32,7 +32,7 @@ module Toonrb
 
       output = parser.parse
       output.validate(strict:)
-      output.to_ruby
+      output.to_ruby(strict:, path_expansion:)
     end
   end
 end

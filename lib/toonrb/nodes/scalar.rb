@@ -12,7 +12,7 @@ module Toonrb
     end
 
     class QuotedString < Scalar
-      def to_ruby
+      def to_ruby(**_optargs)
         token.text[1..-2]
       end
 
@@ -22,7 +22,7 @@ module Toonrb
     end
 
     class UnquotedString < Scalar
-      def to_ruby
+      def to_ruby(**_optargs)
         token.text.strip
       end
 
@@ -32,7 +32,7 @@ module Toonrb
     end
 
     class EmptyString < Base
-      def to_ruby
+      def to_ruby(**_optargs)
         ''
       end
 
@@ -42,7 +42,7 @@ module Toonrb
     end
 
     class Boolean < Scalar
-      def to_ruby
+      def to_ruby(**_optargs)
         token.text.strip == 'true'
       end
 
@@ -52,7 +52,7 @@ module Toonrb
     end
 
     class Null < Scalar
-      def to_ruby
+      def to_ruby(**_optargs)
         nil
       end
 
@@ -62,7 +62,7 @@ module Toonrb
     end
 
     class Number < Scalar
-      def to_ruby
+      def to_ruby(**_optargs)
         text = token.text.strip
         if text.match?(/[.e]/i)
           value_f = text.to_f
