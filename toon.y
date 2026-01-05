@@ -1,4 +1,4 @@
-class Toonrb::GeneratedParser
+class GeneratedParser
 token
   L_BRACKET
   R_BRACKET
@@ -15,24 +15,22 @@ token
   NL
   PUSH_INDENT
   POP_INDENT
+  BLANK
   EOS
 
 rule
   root
-    :
-    | root object
-    | root array
-    | root primitive eol {
-        handler.push_value(val[1])
+    : root_item* EOS
+  root_item
+    : NL
+    | object
+    | array
+    | primitive NL {
+        handler.push_value(val[0])
       }
-    | root eol
 
   object
     : object_head_item object_item* {
-        handler.pop
-      }
-  object_nested
-    : PUSH_INDENT object_head_item object_item* POP_INDENT {
         handler.pop
       }
   object_head_item
@@ -50,35 +48,37 @@ rule
         handler.push_value(val[0], key: true)
       }
   object_value
-    : eol {
+    : NL {
         position = scanner.current_position
         handler.push_empty_object(position)
       }
-    | primitive eol {
+    | primitive NL {
         handler.push_value(val[0])
       }
     | array
-    | eol object_nested
+    | NL PUSH_INDENT object POP_INDENT
 
   array
-    : array_header eol {
+    : array_header NL {
         handler.pop
-        scanner.reset_delimiters
+        scanner.end_array
       }
-    | array_header inline_array_values eol {
+    | array_header inline_array_values NL {
         handler.pop
-        scanner.reset_delimiters
+        scanner.end_array
       }
-    | array_header eol PUSH_INDENT list_array_items POP_INDENT {
+    | array_header NL PUSH_INDENT list_array_items POP_INDENT {
         handler.pop
+        scanner.end_list_array_items
+        scanner.end_array
       }
-    | tebular_array_header eol {
+    | tebular_array_header NL {
         handler.pop
-        scanner.reset_delimiters
+        scanner.end_array
       }
-    | tebular_array_header eol PUSH_INDENT tabular_rows POP_INDENT {
+    | tebular_array_header NL PUSH_INDENT tabular_rows POP_INDENT {
         handler.pop
-        scanner.reset_delimiters
+        scanner.end_array
       }
   array_header
     : array_header_common COLON
@@ -91,7 +91,7 @@ rule
       }
   array_header_start
     : L_BRACKET {
-        scanner.any_delimiters
+        scanner.start_array
       }
   tabular_fields
     : string (DELIMITER string)* {
@@ -102,28 +102,42 @@ rule
         each_list_item(val) { |v, _| handler.push_value(v) }
       }
   list_array_items
-    : list_array_items_start list_array_value (HYPHEN list_array_value)*
+    : (list_array_start_item list_array_blank?) (list_array_item list_array_blank?)*
+  list_array_start_item
+    : list_array_items_start list_array_value
   list_array_items_start
     : HYPHEN {
-        scanner.reset_delimiters
+        scanner.start_list_array_items
       }
+  list_array_item
+    : HYPHEN list_array_value
   list_array_value
-    : eol {
+    : NL {
         position = scanner.current_position
         handler.push_empty_object(position)
       }
-    | primitive eol {
+    | primitive NL {
         handler.push_value(val[0])
       }
     | array
     | object
+  list_array_blank
+    : blank {
+        handler.push_value(val[0])
+      }
   tabular_rows
-    : (tabular_row eol)+
+    : (tabular_row tabular_blank?)+
   tabular_row
-    : primitive (DELIMITER primitive)* {
+    : tabular_row_value (DELIMITER tabular_row_value)* NL {
         each_list_item(val) do |v, i|
           handler.push_value(v, tabular_value: true, head_value: i.zero?)
         end
+      }
+  tabular_row_value
+    : primitive
+  tabular_blank
+    : blank {
+        handler.push_value(val[0], tabular_value: true, head_value: true)
       }
 
   primitive
@@ -150,7 +164,7 @@ rule
     : NUMBER {
         result = Toonrb::Nodes::Number.new(val[0])
       }
-
-  eol
-    : NL
-    | EOS
+  blank
+    : BLANK {
+        result = Toonrb::Nodes::Blank.new(val[0])
+      }

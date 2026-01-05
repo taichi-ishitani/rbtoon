@@ -4,9 +4,11 @@ module Toonrb
   class Scanner
     include RaiseParseError
 
-    INDENT = /^[ \t]*/
-
     NL = /\n/
+
+    BLANK = /(?:^[ \t\n]*\n)|(?:^[ \t\n]+\z)/
+
+    INDENT = /^[ \t]*/
 
     L_BRACKET = /\[ */
 
@@ -32,145 +34,64 @@ module Toonrb
 
     NUMBER = /\A-?(?:0|[1-9]\d*)(?:\.\d+)?(?:e[+-]?\d+)? *\Z/i
 
-    def initialize(string, filename, indent_size)
+    def initialize(string, filename, strict, indent_size)
       @ss = StringScanner.new(string)
       @filename = filename
       @line = 1
       @column = 1
       @delimiters = []
+      @strict = strict
       @indent_size = indent_size.to_f
       @indent_depth = 0
-      @list_depth = []
-      @reserved_tokens = []
+      @array_depth = 0
+      @list_array_depth = []
+      @control_tokens = []
     end
 
     def next_token
-      scan_indent
-      scan_eos
+      scan_control_tokens if @control_tokens.empty?
 
       token =
-        if @reserved_tokens.empty?
-          scan_token
+        if @control_tokens.empty?
+          scan_code_token
         else
-          @reserved_tokens.shift
+          @control_tokens.shift
         end
       token && [token.kind, token]
     end
 
-    def any_delimiters
+    def start_array
+      @array_depth += 1
       @delimiters << ','
       @delimiters << '|'
       @delimiters << "\t"
     end
 
-    def delimiter(token)
-      reset_delimiters
-      @delimiters << ((token && token.text[0]) || ',')
+    def end_array
+      @array_depth -= 1
+      @delimiters.clear
     end
 
-    def reset_delimiters
+    def start_list_array_items
       @delimiters.clear
+      @indent_depth += 1
+      @list_array_depth.push(@indent_depth)
+    end
+
+    def end_list_array_items
+      @list_array_depth.pop
     end
 
     def current_position
       create_position(@line, @column)
     end
 
+    def delimiter(token)
+      @delimiters.clear
+      @delimiters << ((token && token.text[0]) || ',')
+    end
+
     private
-
-    def scan_indent
-      return if @column > 1 || eos?
-
-      indent, _line, _column = scan(INDENT)
-      return unless indent
-
-      next_depth = (indent.size / @indent_size).floor
-      update_indent_depth(next_depth)
-
-      pop_list_stack(next_depth)
-      if (hyphen_token = scan_list_hyphen)
-        @reserved_tokens.push(hyphen_token)
-      end
-    end
-
-    def pop_list_stack(indent_depth)
-      @list_depth
-        .delete_if { |depth| depth > indent_depth }
-    end
-
-    def scan_list_hyphen
-      hyphen, line, column = scan(HYPHEN)
-      return unless hyphen
-
-      @indent_depth += 1
-      @list_depth.push(@indent_depth)
-
-      create_token(:HYPHEN, hyphen, line, column)
-    end
-
-    def update_indent_depth(next_depth)
-      if @indent_depth > next_depth
-        create_pop_indent_tokens(next_depth)
-      elsif next_depth > @indent_depth
-        create_push_indent_tokens(next_depth)
-      end
-
-      @indent_depth = next_depth
-    end
-
-    def create_pop_indent_tokens(next_depth)
-      count = calc_indent_pop_count(next_depth)
-      return unless count.positive?
-
-      count.times do |i|
-        column = ((@indent_depth - i) * @indent_size).to_i
-        token = create_token(:POP_INDENT, '', @line, column)
-        @reserved_tokens.push(token)
-      end
-    end
-
-    def calc_indent_pop_count(next_depth)
-      count = @indent_depth - next_depth
-      count -= @list_depth.count { |depth| next_depth < depth }
-      count
-    end
-
-    def create_push_indent_tokens(next_depth)
-      count = next_depth - @indent_depth
-      return unless count.positive?
-
-      count.times do |i|
-        column = ((@indent_depth + i) * @indent_size).to_i
-        token = create_token(:PUSH_INDENT, '', @line, column)
-        @reserved_tokens.push(token)
-      end
-    end
-
-    def scan_eos
-      return unless eos?
-
-      update_indent_depth(0)
-
-      token = create_token(:EOS, '', @line, @column)
-      @reserved_tokens.push(token)
-      @reserved_tokens.push(nil)
-    end
-
-    def scan_token
-      token = scan_newline
-      return token if token
-
-      token = scan_header_symbol
-      return token if token
-
-      token = scan_delimiter
-      return token if token
-
-      token = scan_quoted_string
-      return token if token
-
-      scan_unquoted_string
-    end
 
     def eos?
       @ss.eos?
@@ -186,6 +107,13 @@ module Toonrb
       update_state(text)
 
       [text, line, column]
+    end
+
+    def scan_token(pattern, kind)
+      text, line, column = scan(pattern)
+      return unless text
+
+      create_token(kind, text, line, column)
     end
 
     def scan_char
@@ -206,39 +134,154 @@ module Toonrb
     end
 
     def update_state(text)
-      @column += text.length
+      @line, @column = calc_next_position(text, @line, @column)
     end
 
-    def scan_newline
-      char, line, column = scan(NL)
-      return unless char
+    def calc_next_position(text, line, column)
+      return [line, column] if text.empty?
 
-      @line += 1
-      @column = 1
+      n_newlines = text.count("\n")
+      next_line = line + n_newlines
 
-      create_token(:NL, char, line, column)
+      next_column =
+        if text[-1] == "\n"
+          1
+        elsif n_newlines.positive?
+          lines = text.split("\n")
+          lines.last.length
+        else
+          column + text.length
+        end
+
+      [next_line, next_column]
     end
 
-    def scan_header_symbol
+    def scan_control_tokens
+      scan_nl
+      scan_blank
+      scan_indent
+      scan_eos
+    end
+
+    def push_control_token(kind, text, line, column)
+      return unless text
+
+      token = create_token(kind, text, line, column)
+      @control_tokens.push(token)
+    end
+
+    def scan_nl
+      text, line, column = scan(NL)
+      push_control_token(:NL, text, line, column)
+    end
+
+    def scan_blank
+      return if @column > 1 || eos?
+
+      text, line, column = scan(BLANK)
+      return unless send_blank?
+
+      push_control_token(:BLANK, text, line, column)
+    end
+
+    def send_blank?
+      @strict && @array_depth.positive?
+    end
+
+    def scan_indent
+      return if @column > 1 || eos?
+
+      indent, _line, _column = scan(INDENT)
+      return unless indent
+
+      next_depth = calc_next_depth(indent.size)
+      update_indent_depth(next_depth)
+    end
+
+    def calc_next_depth(n_spaces)
+      next_depth = (n_spaces / @indent_size).floor
+      return next_depth unless peek(HYPHEN)
+
+      list_depth = @list_array_depth.find { |depth| (next_depth + 1) == depth }
+      return list_depth if list_depth
+
+      next_depth
+    end
+
+    def update_indent_depth(next_depth)
+      if @indent_depth > next_depth
+        create_pop_indent_tokens(next_depth)
+      elsif next_depth > @indent_depth
+        create_push_indent_tokens(next_depth)
+      end
+
+      @indent_depth = next_depth
+    end
+
+    def create_pop_indent_tokens(next_depth)
+      count = calc_indent_pop_count(next_depth)
+      return unless count.positive?
+
+      count.times do |i|
+        column = ((@indent_depth - i) * @indent_size).to_i
+        push_control_token(:POP_INDENT, '', @line, column)
+      end
+    end
+
+    def calc_indent_pop_count(next_depth)
+      count = @indent_depth - next_depth
+      count -= @list_array_depth.count { |depth| next_depth < depth }
+      count
+    end
+
+    def create_push_indent_tokens(next_depth)
+      count = next_depth - @indent_depth
+      return unless count.positive?
+
+      count.times do |i|
+        column = ((@indent_depth + i) * @indent_size).to_i
+        push_control_token(:PUSH_INDENT, '', @line, column)
+      end
+    end
+
+    def scan_eos
+      return unless eos?
+
+      if @control_tokens.none? { |token| token.kind == :NL }
+        # Parser requires all lines to be ended with NL.
+        # Dummy NL is pushed if no NL exists before EOS.
+        push_control_token(:NL, '', @line, @column)
+      end
+
+      update_indent_depth(0)
+
+      push_control_token(:EOS, '', @line, @column)
+      @control_tokens.push(nil)
+    end
+
+    def scan_code_token
+      token = scan_array_symbol
+      return token if token
+
+      token = scan_token(DELIMITER, :DELIMITER)
+      return token if token
+
+      token = scan_quoted_string
+      return token if token
+
+      scan_unquoted_string
+    end
+
+    def scan_array_symbol
       {
         L_BRACKET: L_BRACKET, R_BRACKET: R_BRACKET,
-        L_BRACE: L_BRACE, R_BRACE: R_BRACE, COLON: COLON
+        L_BRACE: L_BRACE, R_BRACE: R_BRACE, COLON: COLON, HYPHEN: HYPHEN
       }.each do |kind, symbol|
-        char, line, column = scan(symbol)
-        next unless char
-
-        token = create_token(kind, char, line, column)
-        return token
+        token = scan_token(symbol, kind)
+        return token if token
       end
 
       nil
-    end
-
-    def scan_delimiter
-      char, line, column = scan(DELIMITER)
-      return unless char
-
-      create_token(:DELIMITER, char, line, column)
     end
 
     def scan_quoted_string

@@ -6,6 +6,7 @@ require_relative 'toonrb/version'
 require_relative 'toonrb/parse_error'
 require_relative 'toonrb/token'
 require_relative 'toonrb/nodes/base'
+require_relative 'toonrb/nodes/blank'
 require_relative 'toonrb/nodes/scalar'
 require_relative 'toonrb/nodes/array'
 require_relative 'toonrb/nodes/object'
@@ -17,7 +18,7 @@ require_relative 'toonrb/parser'
 
 module Toonrb
   class << self
-    def load(string_or_io, filename: nil)
+    def load(string_or_io, filename: nil, strict: true)
       toon =
         if string_or_io.is_a?(String)
           string_or_io
@@ -25,12 +26,12 @@ module Toonrb
           string_or_io.read
         end
 
-      scanner = Scanner.new(toon, filename, 2)
+      scanner = Scanner.new(toon, filename, strict, 2)
       hander = Handler.new
       parser = Parser.new(scanner, hander, debug: false)
 
       output = parser.parse
-      output.validate
+      output.validate(strict:)
       output.to_ruby
     end
   end

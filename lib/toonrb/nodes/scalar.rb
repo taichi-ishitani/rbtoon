@@ -15,6 +15,10 @@ module Toonrb
       def to_ruby
         token.text[1..-2]
       end
+
+      def kind
+        :quoted_string
+      end
     end
 
     class UnquotedString < Scalar
@@ -25,17 +29,29 @@ module Toonrb
       def to_ruby
         token.text.strip
       end
+
+      def kind
+        :unquoted_string
+      end
     end
 
     class Boolean < Scalar
       def to_ruby
         token.text.strip == 'true'
       end
+
+      def kind
+        :boolean
+      end
     end
 
     class Null < Scalar
       def to_ruby
         nil
+      end
+
+      def kind
+        :null
       end
     end
 
@@ -49,6 +65,10 @@ module Toonrb
         else
           text.to_i
         end
+      end
+
+      def kind
+        :number
       end
     end
   end

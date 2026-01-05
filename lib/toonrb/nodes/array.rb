@@ -21,43 +21,69 @@ module Toonrb
         end
       end
 
-      def validate
+      def validate(strict:)
         if @fields
-          validate_tabular_array
+          validate_tabular_array(strict)
         else
-          validate_array
+          validate_array(strict)
         end
       end
 
       def to_ruby
-        if @fields
+        values = values_without_blank
+        if tabular?
           fields = values_to_ruby(@fields)
-          @values
+          values
             .map { |row| fields.zip(values_to_ruby(row)).to_h }
         else
-          values_to_ruby(@values) || []
+          values_to_ruby(values) || []
         end
+      end
+
+      def kind
+        :array
       end
 
       private
 
-      def validate_tabular_array
+      def tabular?
+        !@fields.nil?
+      end
+
+      def validate_tabular_array(strict)
+        check_blank(strict, @values.map(&:first), 'tabular rows')
         validate_array_size('tabular rows')
         validate_tabular_row_size
-        @valus&.flatten&.each(&:validate)
+        @valus&.flatten&.each { |value| value.validate(strict:) }
       end
 
-      def validate_array
+      def validate_array(strict)
+        check_blank(strict, @values, 'array')
         validate_array_size('array items')
-        @values&.each(&:validate)
+        @values&.each { |value| value.validate(strict:) }
       end
 
-      def validate_array_size(item_kind)
-        actual = @values&.size || 0
+      def check_blank(strict, values, kind)
+        return unless strict && values
+
+        blank = values.index { |value| value.kind == :blank }
+        return unless blank
+
+        non_blank = values.rindex { |value| value.kind != :blank }
+        return unless non_blank
+
+        return if non_blank < blank
+
+        position = values[blank].position
+        raise_parse_error "blank lines inside #{kind} are not allowed", position
+      end
+
+      def validate_array_size(kind)
+        actual = values_without_blank&.size || 0
         expected = @size.to_ruby
         return if actual == expected
 
-        raise_parse_error "expected #{expected} #{item_kind}, but got #{actual}", position
+        raise_parse_error "expected #{expected} #{kind}, but got #{actual}", position
       end
 
       def validate_tabular_row_size
@@ -68,6 +94,12 @@ module Toonrb
 
           position = row.first.position
           raise_parse_error "expected #{expected} tabular row items, but got #{actual}", position
+        end
+      end
+
+      def values_without_blank
+        @values&.reject do |value|
+          ((tabular? && value.first.kind) || value.kind) == :blank
         end
       end
 

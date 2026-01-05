@@ -7,16 +7,20 @@ module Toonrb
         super(nil, nil)
       end
 
-      def validate
+      def validate(strict:)
         @values.each_with_index do |value, i|
           i.positive? &&
             (raise_parse_error 'two or more values at root depth', value.position)
-          value.validate
+          value.validate(strict:)
         end
       end
 
       def to_ruby
         @values.first&.to_ruby
+      end
+
+      def kind
+        :root
       end
     end
   end

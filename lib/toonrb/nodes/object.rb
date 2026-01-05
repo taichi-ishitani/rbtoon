@@ -13,10 +13,10 @@ module Toonrb
         end
       end
 
-      def validate
+      def validate(strict:)
         @keys.zip(@values).each do |key, value|
-          key.validate
-          value.validate
+          key.validate(strict:)
+          value.validate(strict:)
         end
       end
 
@@ -25,11 +25,19 @@ module Toonrb
           .zip(@values)
           .to_h { |key, value| [key.to_ruby, value.to_ruby] }
       end
+
+      def kind
+        :object
+      end
     end
 
     class EmptyObject < Base
       def to_ruby
         {}
+      end
+
+      def kind
+        :empty_object
       end
     end
   end
