@@ -23,6 +23,7 @@ rule
     : root_item* EOS
   root_item
     : NL
+    | BLANK
     | object
     | array
     | primitive NL {
@@ -48,42 +49,20 @@ rule
         handler.push_value(val[0], key: true)
       }
   object_value
-    : NL {
+    : NL BLANK? {
         position = scanner.current_position
         handler.push_empty_object(position)
       }
-    | primitive NL {
+    | primitive NL BLANK? {
         handler.push_value(val[0])
       }
     | array
-    | NL PUSH_INDENT object POP_INDENT
+    | NL BLANK? PUSH_INDENT object POP_INDENT
 
   array
-    : array_header NL {
-        handler.pop
-        scanner.end_array
-      }
-    | array_header inline_array_values NL {
-        handler.pop
-        scanner.end_array
-      }
-    | array_header NL PUSH_INDENT list_array_items POP_INDENT {
-        handler.pop
-        scanner.end_list_array_items
-        scanner.end_array
-      }
-    | tebular_array_header NL {
-        handler.pop
-        scanner.end_array
-      }
-    | tebular_array_header NL PUSH_INDENT tabular_rows POP_INDENT {
-        handler.pop
-        scanner.end_array
-      }
-  array_header
-    : array_header_common COLON
-  tebular_array_header
-    : array_header_common L_BRACE tabular_fields R_BRACE COLON
+    : inline_array
+    | list_array
+    | tebular_array
   array_header_common
     : array_header_start number DELIMITER? R_BRACKET {
         scanner.delimiter(val[2])
@@ -93,9 +72,10 @@ rule
     : L_BRACKET {
         scanner.start_array
       }
-  tabular_fields
-    : string (DELIMITER string)* {
-        each_list_item(val) { |v, _| handler.push_value(v, tabular_field: true) }
+  inline_array
+    : array_header_common COLON inline_array_values NL BLANK? {
+        handler.pop
+        scanner.end_array
       }
   inline_array_values
     : inline_array_value (DELIMITER inline_array_value)* {
@@ -104,45 +84,60 @@ rule
   inline_array_value
     : primitive
     | empty_string
+  list_array
+    : list_array_header {
+        handler.pop
+        scanner.end_array
+      }
+    | list_array_header PUSH_INDENT list_array_items POP_INDENT {
+        handler.pop
+        scanner.end_list_array_items
+        scanner.end_array
+    }
+  list_array_header
+    : array_header_common COLON NL BLANK?
   list_array_items
-    : (list_array_start_item list_array_blank?) (list_array_item list_array_blank?)*
-  list_array_start_item
-    : list_array_items_start list_array_value
-  list_array_items_start
+    : list_array_start list_array_value (HYPHEN list_array_value)*
+  list_array_start
     : HYPHEN {
         scanner.start_list_array_items
       }
-  list_array_item
-    : HYPHEN list_array_value
   list_array_value
-    : NL {
-        position = scanner.current_position
-        handler.push_empty_object(position)
+    : NL BLANK? {
+        handler.push_empty_object(val[0])
+        handler.push_blank(val[1])
       }
-    | primitive NL {
+    | primitive NL BLANK? {
         handler.push_value(val[0])
+        handler.push_blank(val[2])
       }
     | array
     | object
-  list_array_blank
-    : blank {
-        handler.push_value(val[0])
+  tebular_array
+    : tebular_array_header {
+        handler.pop
+        scanner.end_array
       }
-  tabular_rows
-    : (tabular_row tabular_blank?)+
+    | tebular_array_header PUSH_INDENT tabular_row+ POP_INDENT {
+        handler.pop
+        scanner.end_array
+      }
+  tebular_array_header
+    : array_header_common L_BRACE tabular_fields R_BRACE COLON NL BLANK?
+  tabular_fields
+    : string (DELIMITER string)* {
+        each_list_item(val) { |v, _| handler.push_value(v, tabular_field: true) }
+      }
   tabular_row
-    : tabular_row_value (DELIMITER tabular_row_value)* NL {
+    : tabular_row_value (DELIMITER tabular_row_value)* NL BLANK? {
         each_list_item(val) do |v, i|
           handler.push_value(v, tabular_value: true, head_value: i.zero?)
         end
+        handler.push_blank(val[3], tabular_value: true, head_value: true)
       }
   tabular_row_value
     : primitive
     | empty_string
-  tabular_blank
-    : blank {
-        handler.push_value(val[0], tabular_value: true, head_value: true)
-      }
 
   primitive
     : string
@@ -172,8 +167,4 @@ rule
   number
     : NUMBER {
         result = handler.number(val[0])
-      }
-  blank
-    : BLANK {
-        result = handler.blank(val[0])
       }

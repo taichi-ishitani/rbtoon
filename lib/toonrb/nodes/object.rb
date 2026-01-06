@@ -36,20 +36,20 @@ module Toonrb
         k = key.to_ruby(strict:, path_expansion:)
         v = value.to_ruby(strict:, path_expansion:)
 
-        paths = split_path(key.kind, k, path_expansion)
+        paths = split_path(key, k, path_expansion)
         insert_value(result, paths, v, strict, key.position)
       end
 
-      def split_path(key_kind, key, path_expansion)
-        if path_expansion && expandable_key?(key_kind, key)
+      def split_path(key_node, key, path_expansion)
+        if path_expansion && expandable_key?(key_node, key)
           key.split('.')
         else
           [key]
         end
       end
 
-      def expandable_key?(key_kind, key)
-        key_kind == :unquoted_string &&
+      def expandable_key?(key_node, key)
+        key_node.unquoted_string? &&
           /\A[_a-z][_a-z0-9]*(?:\.[_a-z][_a-z0-9]*)*\Z/i.match?(key)
       end
 

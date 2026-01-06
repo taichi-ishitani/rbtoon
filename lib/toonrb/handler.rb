@@ -29,6 +29,13 @@ module Toonrb
       current.push_value(value, **optargs)
     end
 
+    def push_blank(token, **optargs)
+      return unless token
+
+      blank = Nodes::Blank.new(token)
+      push_value(blank, **optargs)
+    end
+
     def push_empty_object(position)
       object = Nodes::EmptyObject.new(position)
       push_value(object)
@@ -65,10 +72,6 @@ module Toonrb
 
     def number(token)
       Nodes::Number.new(token)
-    end
-
-    def blank(token)
-      Nodes::Blank.new(token)
     end
 
     private

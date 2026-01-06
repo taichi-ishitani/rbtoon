@@ -189,13 +189,9 @@ module Toonrb
       return if @column > 1 || eos?
 
       text, line, column = scan(BLANK)
-      return unless send_blank?
+      return unless text
 
       push_control_token(:BLANK, text, line, column)
-    end
-
-    def send_blank?
-      @strict && @array_depth.positive?
     end
 
     def scan_indent

@@ -66,10 +66,10 @@ module Toonrb
       def check_blank(strict, values, kind)
         return unless strict && values
 
-        blank = values.index { |value| value.kind == :blank }
+        blank = values.index(&:blank?)
         return unless blank
 
-        non_blank = values.rindex { |value| value.kind != :blank }
+        non_blank = values.rindex { |value| !value.blank? }
         return unless non_blank
 
         return if non_blank < blank
@@ -89,6 +89,8 @@ module Toonrb
       def validate_tabular_row_size
         expected = @fields.size
         @values.each do |row|
+          next if row.first.blank?
+
           actual = row.size
           next if actual == expected
 
@@ -99,7 +101,11 @@ module Toonrb
 
       def values_without_blank
         @values&.reject do |value|
-          ((tabular? && value.first.kind) || value.kind) == :blank
+          if tabular?
+            value.first.blank?
+          else
+            value.blank?
+          end
         end
       end
 
