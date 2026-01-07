@@ -69,7 +69,7 @@ module Toonrb
 
       toon = <<~'TOON'
         outer[1]:
-          - innter[1]:
+          - inner[1]:
 
               - 0
       TOON
@@ -77,7 +77,7 @@ module Toonrb
 
       toon = <<~'TOON'
         outer[1]:
-          - innter[1]:
+          - inner[1]:
               - a:
 
                   b: 0
@@ -118,6 +118,53 @@ module Toonrb
       TOON
       json = <<~'JSON'
         {"items":["a","b"]}
+      JSON
+      assert_equal(load_json(json), decode_toon(toon, strict: false))
+
+      toon = <<~'TOON'
+        outer[1]:
+          - inner[2]:
+              - [1]: a
+
+              - [1]: b
+      TOON
+      json = <<~'JSON'
+        {"outer":[{"inner":[["a"],["b"]]}]}
+      JSON
+      assert_equal(load_json(json), decode_toon(toon, strict: false))
+
+      toon = <<~'TOON'
+        outer[1]:
+          - inner[1]:
+              - a: 0
+
+                b: 1
+      TOON
+      json = <<~'JSON'
+        {"outer":[{"inner":[{"a":0,"b":1}]}]}
+      JSON
+      assert_equal(load_json(json), decode_toon(toon, strict: false))
+
+      toon = <<~'TOON'
+        outer[1]:
+          - inner[1]:
+
+              - 0
+      TOON
+      json = <<~'JSON'
+        {"outer":[{"inner":[0]}]}
+      JSON
+      assert_equal(load_json(json), decode_toon(toon, strict: false))
+
+      toon = <<~'TOON'
+        outer[1]:
+          - inner[1]:
+              - a:
+
+                  b: 0
+      TOON
+      json = <<~'JSON'
+        {"outer":[{"inner":[{"a":{"b":0}}]}]}
       JSON
       assert_equal(load_json(json), decode_toon(toon, strict: false))
     end
