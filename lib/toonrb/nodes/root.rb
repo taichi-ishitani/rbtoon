@@ -4,7 +4,7 @@ module Toonrb
   module Nodes
     class Root < Array
       def initialize
-        super(nil, nil)
+        super(nil, nil, nil)
       end
 
       def validate(strict:)

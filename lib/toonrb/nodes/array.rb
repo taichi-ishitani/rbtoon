@@ -2,23 +2,14 @@
 
 module Toonrb
   module Nodes
-    class Array < Base
-      def initialize(size, position)
-        super(position)
+    class Array < StructureBase
+      def initialize(parent, position, size)
+        super(parent, position)
         @size = size
       end
 
-      attr_reader :position
-
-      def push_value(value, tabular_field: false, tabular_value: false, head_value: false)
-        if tabular_field
-          (@fields ||= []) << value
-        elsif tabular_value
-          (@values ||= []) << [] if head_value
-          @values.last << value
-        else
-          (@values ||= []) << value
-        end
+      def push_tabular_fields(fields)
+        @fields = fields
       end
 
       def validate(strict:)
@@ -30,14 +21,15 @@ module Toonrb
       end
 
       def to_ruby(**optargs)
-        values = values_without_blank
-        if tabular?
-          fields = values_to_ruby(@fields, **optargs)
-          values
-            .map { |row| fields.zip(values_to_ruby(row, **optargs)).to_h }
-        else
-          values_to_ruby(values, **optargs) || []
-        end
+        values = non_blank_values
+        result =
+          if tabular?
+            fields = values_to_ruby(@fields, **optargs)
+            values&.map { |row| fields.zip(row.to_ruby(**optargs)).to_h }
+          else
+            values&.map { |value| value.to_ruby(**optargs) }
+          end
+        result || []
       end
 
       def kind
@@ -51,35 +43,20 @@ module Toonrb
       end
 
       def validate_tabular_array(strict)
-        check_blank(strict, @values.map(&:first), 'tabular rows')
+        check_blank(strict, 'tabular rows')
         validate_array_size('tabular rows')
         validate_tabular_row_size
         @valus&.flatten&.each { |value| value.validate(strict:) }
       end
 
       def validate_array(strict)
-        check_blank(strict, @values, 'array')
+        check_blank(strict, 'array')
         validate_array_size('array items')
         @values&.each { |value| value.validate(strict:) }
       end
 
-      def check_blank(strict, values, kind)
-        return unless strict && values
-
-        blank = values.index(&:blank?)
-        return unless blank
-
-        non_blank = values.rindex { |value| !value.blank? }
-        return unless non_blank
-
-        return if non_blank < blank
-
-        position = values[blank].position
-        raise_parse_error "blank lines inside #{kind} are not allowed", position
-      end
-
       def validate_array_size(kind)
-        actual = values_without_blank&.size || 0
+        actual = non_blank_values&.size || 0
         expected = @size.to_ruby
         return if actual == expected
 
@@ -88,29 +65,36 @@ module Toonrb
 
       def validate_tabular_row_size
         expected = @fields.size
-        @values.each do |row|
-          next if row.first.blank?
-
+        non_blank_values.each do |row|
           actual = row.size
           next if actual == expected
 
-          position = row.first.position
+          position = row.position
           raise_parse_error "expected #{expected} tabular row items, but got #{actual}", position
-        end
-      end
-
-      def values_without_blank
-        @values&.reject do |value|
-          if tabular?
-            value.first.blank?
-          else
-            value.blank?
-          end
         end
       end
 
       def values_to_ruby(values, **optargs)
         values&.map { |value| value.to_ruby(**optargs) }
+      end
+    end
+
+    class TabularRow < Base
+      def initialize(values, position)
+        super(position)
+        @values = values
+      end
+
+      def size
+        @values.size
+      end
+
+      def to_ruby(**optargs)
+        @values.map { |value| value.to_ruby(**optargs) }
+      end
+
+      def kind
+        :tabular_row
       end
     end
   end

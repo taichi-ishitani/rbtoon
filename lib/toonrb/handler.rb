@@ -11,29 +11,42 @@ module Toonrb
     end
 
     def push_object(key)
-      object = Nodes::Object.new(key.position)
+      object = Nodes::Object.new(current, key.position)
       push_value(object)
 
       @stack << object
-      push_value(key, key: true)
+      push_value(key)
     end
 
     def push_array(l_bracket_token, size)
-      array = Nodes::Array.new(size, l_bracket_token.position)
+      array = Nodes::Array.new(current, l_bracket_token.position, size)
       push_value(array)
 
       @stack << array
     end
 
-    def push_value(value, **optargs)
-      current.push_value(value, **optargs)
+    def push_value(value)
+      current.push_value(value)
     end
 
-    def push_blank(token, **optargs)
+    def push_values(values)
+      values.each { |value| push_value(value) }
+    end
+
+    def push_tabular_fields(fields)
+      current.push_tabular_fields(fields)
+    end
+
+    def push_tabular_row(values)
+      row = Nodes::TabularRow.new(values, values.first.position)
+      push_value(row)
+    end
+
+    def push_blank(token)
       return unless token
 
       blank = Nodes::Blank.new(token)
-      push_value(blank, **optargs)
+      push_value(blank)
     end
 
     def push_empty_object(position)

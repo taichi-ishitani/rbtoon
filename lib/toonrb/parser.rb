@@ -23,8 +23,8 @@ module Toonrb
       scanner.next_token
     end
 
-    def each_list_item(val, &)
-      [val[0], *val[1]&.map { _2 }].each_with_index(&)
+    def to_list(val)
+      [val[0], *val[1]&.map { |_, value| value }]
     end
   end
 end

@@ -2,26 +2,17 @@
 
 module Toonrb
   module Nodes
-    class Object < Base
-      attr_reader :position
-
-      def push_value(value, key: false)
-        if key
-          (@keys ||= []) << value
-        else
-          (@values ||= []) << value
-        end
-      end
-
+    class Object < StructureBase
       def validate(strict:)
-        @keys.zip(@values).each do |key, value|
+        check_blank(strict, 'array')
+        each_key_value do |key, value|
           key.validate(strict:)
           value.validate(strict:)
         end
       end
 
       def to_ruby(strict: true, path_expansion: false)
-        @keys.zip(@values).each_with_object({}) do |(key, value), result|
+        each_key_value.with_object({}) do |(key, value), result|
           build_result(result, key, value, strict, path_expansion)
         end
       end
@@ -31,6 +22,14 @@ module Toonrb
       end
 
       private
+
+      def each_key_value(&)
+        if block_given?
+          non_blank_values.each_slice(2, &)
+        else
+          non_blank_values.each_slice(2)
+        end
+      end
 
       def build_result(result, key, value, strict, path_expansion)
         k = key.to_ruby(strict:, path_expansion:)

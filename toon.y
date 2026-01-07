@@ -46,18 +46,19 @@ rule
     | object_key array
   object_key
     : string {
-        handler.push_value(val[0], key: true)
+        handler.push_value(val[0])
       }
   object_value
     : NL BLANK? {
-        position = scanner.current_position
-        handler.push_empty_object(position)
+        handler.push_empty_object(val[0].position)
+        handler.push_blank(val[1])
       }
     | primitive NL BLANK? {
         handler.push_value(val[0])
+        handler.push_blank(val[2])
       }
     | array
-    | NL BLANK? PUSH_INDENT object POP_INDENT
+    | nl_blank PUSH_INDENT object POP_INDENT
 
   array
     : inline_array
@@ -73,13 +74,13 @@ rule
         scanner.start_array
       }
   inline_array
-    : array_header_common COLON inline_array_values NL BLANK? {
+    : array_header_common COLON inline_array_values nl_blank {
         handler.pop
         scanner.end_array
       }
   inline_array_values
     : inline_array_value (DELIMITER inline_array_value)* {
-        each_list_item(val) { |v, _| handler.push_value(v) }
+        handler.push_values(to_list(val))
       }
   inline_array_value
     : primitive
@@ -95,7 +96,7 @@ rule
         scanner.end_array
     }
   list_array_header
-    : array_header_common COLON NL BLANK?
+    : array_header_common COLON nl_blank
   list_array_items
     : list_array_start list_array_value (HYPHEN list_array_value)*
   list_array_start
@@ -104,7 +105,7 @@ rule
       }
   list_array_value
     : NL BLANK? {
-        handler.push_empty_object(val[0])
+        handler.push_empty_object(val[0].position)
         handler.push_blank(val[1])
       }
     | primitive NL BLANK? {
@@ -118,22 +119,21 @@ rule
         handler.pop
         scanner.end_array
       }
-    | tebular_array_header PUSH_INDENT tabular_row+ POP_INDENT {
+    | tebular_array_header PUSH_INDENT tabular_rows POP_INDENT {
         handler.pop
         scanner.end_array
       }
   tebular_array_header
-    : array_header_common L_BRACE tabular_fields R_BRACE COLON NL BLANK?
+    : array_header_common L_BRACE tabular_fields R_BRACE COLON nl_blank
   tabular_fields
     : string (DELIMITER string)* {
-        each_list_item(val) { |v, _| handler.push_value(v, tabular_field: true) }
+        handler.push_tabular_fields(to_list(val))
       }
+  tabular_rows
+    : (tabular_row nl_blank)+
   tabular_row
-    : tabular_row_value (DELIMITER tabular_row_value)* NL BLANK? {
-        each_list_item(val) do |v, i|
-          handler.push_value(v, tabular_value: true, head_value: i.zero?)
-        end
-        handler.push_blank(val[3], tabular_value: true, head_value: true)
+    : tabular_row_value (DELIMITER tabular_row_value)* {
+        handler.push_tabular_row(to_list(val))
       }
   tabular_row_value
     : primitive
@@ -167,4 +167,9 @@ rule
   number
     : NUMBER {
         result = handler.number(val[0])
+      }
+
+  nl_blank
+    : NL BLANK? {
+        handler.push_blank(val[1])
       }
