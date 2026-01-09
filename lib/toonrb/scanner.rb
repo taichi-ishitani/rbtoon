@@ -45,6 +45,7 @@ module Toonrb
       @strict = strict
       @indent_size = indent_size.to_f
       @indent_depth = 0
+      @layer_stack = []
       @array_depth = 0
       @list_array_depth = []
       @control_tokens = []
@@ -62,26 +63,30 @@ module Toonrb
       token && [token.kind, token]
     end
 
-    def start_array
+    def push_array
       @array_depth += 1
       @delimiters << ','
       @delimiters << '|'
       @delimiters << "\t"
+      push_layer(:array)
     end
 
-    def end_array
+    def pop_array
       @array_depth -= 1
       @delimiters.clear
+      pop_layer
     end
 
     def start_list_array_items
       @delimiters.clear
-      @indent_depth += 1
-      @list_array_depth.push(@indent_depth)
     end
 
-    def end_list_array_items
-      @list_array_depth.pop
+    def push_object
+      push_layer(:object)
+    end
+
+    def pop_object
+      pop_layer
     end
 
     def current_position
@@ -94,6 +99,37 @@ module Toonrb
     end
 
     private
+
+    def push_layer(layer)
+      case @layer_stack.last
+      in [Integer => depth, Array => layers] if depth == @indent_depth
+        layers.push(layer)
+      else
+        @layer_stack.push([@indent_depth, [layer]])
+      end
+    end
+
+    def pop_layer
+      @layer_stack.pop
+    end
+
+    def object_as_list_item?(depth)
+      index = @layer_stack.index { |(d, _)| depth == d }
+      return false unless index
+      return false unless index.positive? && object_layer?(@layer_stack[index])
+
+      array_layer?(@layer_stack[index - 1])
+    end
+
+    def object_layer?(layer)
+      _, layers = layer
+      layers.first == :object
+    end
+
+    def array_layer?(layer)
+      _, layers = layer
+      layers.last == :array
+    end
 
     def eos?
       @ss.eos?
@@ -230,12 +266,11 @@ module Toonrb
 
     def calc_next_depth(indent)
       next_depth = (indent.length / @indent_size).floor
-      return next_depth unless peek(HYPHEN)
-
-      list_depth = @list_array_depth.find { |depth| (next_depth + 1) == depth }
-      return list_depth if list_depth
-
-      next_depth
+      if object_as_list_item?(next_depth - 1)
+        next_depth - 1
+      else
+        next_depth
+      end
     end
 
     def update_indent_depth(next_depth)
@@ -259,19 +294,33 @@ module Toonrb
     end
 
     def calc_indent_pop_count(next_depth)
-      count = @indent_depth - next_depth
-      count -= @list_array_depth.count { |depth| next_depth < depth }
-      count
+      offset = @layer_stack.count do |layer|
+        depth, = layer
+        next_depth <= depth &&
+          (1...@indent_depth).include?(depth) &&
+          object_as_list_item?(depth)
+      end
+      @indent_depth - next_depth - offset
     end
 
     def create_push_indent_tokens(next_depth)
-      count = next_depth - @indent_depth
+      count = calc_indent_push_count(next_depth)
       return unless count.positive?
 
       count.times do |i|
         column = ((@indent_depth + i) * @indent_size).to_i
         push_control_token(:PUSH_INDENT, '', @line, column)
       end
+    end
+
+    def calc_indent_push_count(next_depth)
+      base =
+        if object_as_list_item?(@indent_depth)
+          @indent_depth + 1
+        else
+          @indent_depth
+        end
+      next_depth - base
     end
 
     def scan_eos

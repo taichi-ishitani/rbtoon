@@ -33,6 +33,7 @@ rule
   object
     : object_head_item object_item* {
         handler.pop
+        scanner.pop_object
       }
   object_head_item
     : object_head_key COLON object_value
@@ -40,6 +41,7 @@ rule
   object_head_key
     : string {
         handler.push_object(val[0])
+        scanner.push_object
       }
   object_item
     : object_key COLON object_value
@@ -71,12 +73,12 @@ rule
       }
   array_header_start
     : L_BRACKET {
-        scanner.start_array
+        scanner.push_array
       }
   inline_array
     : array_header_common COLON inline_array_values nl_blank {
         handler.pop
-        scanner.end_array
+        scanner.pop_array
       }
   inline_array_values
     : inline_array_value (DELIMITER inline_array_value)* {
@@ -88,12 +90,11 @@ rule
   list_array
     : list_array_header {
         handler.pop
-        scanner.end_array
+        scanner.pop_array
       }
     | list_array_header PUSH_INDENT list_array_items POP_INDENT {
         handler.pop
-        scanner.end_list_array_items
-        scanner.end_array
+        scanner.pop_array
     }
   list_array_header
     : array_header_common COLON nl_blank
@@ -117,11 +118,11 @@ rule
   tebular_array
     : tebular_array_header {
         handler.pop
-        scanner.end_array
+        scanner.pop_array
       }
     | tebular_array_header PUSH_INDENT tabular_rows POP_INDENT {
         handler.pop
-        scanner.end_array
+        scanner.pop_array
       }
   tebular_array_header
     : array_header_common L_BRACE tabular_fields R_BRACE COLON nl_blank
