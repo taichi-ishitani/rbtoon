@@ -38,5 +38,11 @@ module Toonrb
       output.validate(strict:)
       output.to_ruby(symbolize_names:, strict:, path_expansion:)
     end
+
+    def decode_file(filename, **optargs)
+      File.open(filename, 'r:bom|utf-8') do |fp|
+        decode(fp, filename:, **optargs)
+      end
+    end
   end
 end

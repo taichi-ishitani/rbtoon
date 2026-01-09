@@ -54,5 +54,17 @@ module Toonrb
       JSON
       assert_equal(load_json(json, symbolize_names: true), decode_toon(toon, symbolize_names: true))
     end
+
+    def test_decode_file
+      examples_dir = File.join(__dir__, 'spec', 'examples', 'conversions')
+      toon_files = Dir.glob('*.toon', base: examples_dir)
+      json_files = Dir.glob('*.json', base: examples_dir)
+
+      toon_files.zip(json_files).each do |toon_file, json_file|
+        toon = Toonrb.decode_file(File.join(examples_dir, toon_file), path_expansion: true)
+        json = JSON.load_file(File.join(examples_dir, json_file))
+        assert_equal(json, toon)
+      end
+    end
   end
 end

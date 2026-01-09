@@ -3,6 +3,7 @@
 require_relative '../lib/toonrb'
 require 'minitest/autorun'
 require 'json'
+require 'tempfile'
 
 module Toonrb
   class TestCase < Minitest::Test
