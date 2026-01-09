@@ -21,7 +21,7 @@ module Toonrb
     def decode(
       string_or_io,
       filename: nil, symbolize_names: false,
-      strict: true, path_expansion: false, indent_size: 2
+      strict: true, path_expansion: false, indent_size: 2, debug: false
     )
       toon =
         if string_or_io.is_a?(String)
@@ -30,11 +30,7 @@ module Toonrb
           string_or_io.read
         end
 
-      scanner = Scanner.new(toon, filename, strict, indent_size)
-      hander = Handler.new
-      parser = Parser.new(scanner, hander, debug: false)
-
-      output = parser.parse
+      output = parse(toon, filename, strict, indent_size, debug)
       output.validate(strict:)
       output.to_ruby(symbolize_names:, strict:, path_expansion:)
     end
@@ -43,6 +39,15 @@ module Toonrb
       File.open(filename, 'r:bom|utf-8') do |fp|
         decode(fp, filename:, **optargs)
       end
+    end
+
+    private
+
+    def parse(toon, filename, strict, indent_size, debug)
+      scanner = Scanner.new(toon, filename, strict, indent_size)
+      handler = Handler.new
+      parser = Parser.new(scanner, handler, debug:)
+      parser.parse
     end
   end
 end
