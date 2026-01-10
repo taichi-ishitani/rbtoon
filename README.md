@@ -1,3 +1,4 @@
+[![Gem Version](https://badge.fury.io/rb/toonrb.svg)](https://badge.fury.io/rb/toonrb)
 [![Regression](https://github.com/taichi-ishitani/toonrb/actions/workflows/regression.yml/badge.svg)](https://github.com/taichi-ishitani/toonrb/actions/workflows/regression.yml)
 [![codecov](https://codecov.io/gh/taichi-ishitani/toonrb/graph/badge.svg?token=kT9yJlJCuD)](https://codecov.io/gh/taichi-ishitani/toonrb)
 
