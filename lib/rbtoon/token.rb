@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Toonrb
+module RbToon
   class Position # :nodoc:
     def initialize(filename, line, column)
       @filename = filename

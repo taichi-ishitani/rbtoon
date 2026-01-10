@@ -2,8 +2,8 @@
 
 require_relative 'test_helper'
 
-module Toonrb
-  class TestToonrb < TestCase
+module RbToon
+  class TestRbToon < TestCase
     def test_symbolize_names
       toon = <<~'TOON'
         context:
@@ -61,7 +61,7 @@ module Toonrb
       json_files = Dir.glob('*.json', base: examples_dir)
 
       toon_files.zip(json_files).each do |toon_file, json_file|
-        toon = Toonrb.decode_file(File.join(examples_dir, toon_file), path_expansion: true)
+        toon = RbToon.decode_file(File.join(examples_dir, toon_file), path_expansion: true)
         json = JSON.load_file(File.join(examples_dir, json_file))
         assert_equal(json, toon)
       end

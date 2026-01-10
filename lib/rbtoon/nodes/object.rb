@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Toonrb # :nodoc: all
+module RbToon # :nodoc: all
   module Nodes
     class Object < StructureBase
       def validate(strict: true)

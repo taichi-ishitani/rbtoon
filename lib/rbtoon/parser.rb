@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Toonrb
+module RbToon
   class Parser < GeneratedParser # :nodoc:
     include RaiseParseError
 

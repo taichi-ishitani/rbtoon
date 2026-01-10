@@ -6,7 +6,7 @@
 #
 
 require 'racc/parser.rb'
-module Toonrb
+module RbToon
   class GeneratedParser < Racc::Parser
 ##### State transition tables begin ###
 
@@ -734,4 +734,4 @@ def _reduce_none(val, _values, result)
 end
 
   end   # class GeneratedParser
-end   # module Toonrb
+end   # module RbToon

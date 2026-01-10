@@ -2,7 +2,7 @@
 
 require_relative 'test_helper'
 
-module Toonrb
+module RbToon
   class TestCompliance < TestCase
     FIXTURES_DIR = File.join(__dir__, 'spec', 'tests', 'fixtures', 'decode')
     FIXTURES = Dir.glob('*.json', base: FIXTURES_DIR)
@@ -39,7 +39,7 @@ module Toonrb
       Tempfile.create([testname, '.toon']) do |temp|
         temp.write(input)
         temp.rewind
-        Toonrb.decode_file(temp.path, **options)
+        RbToon.decode_file(temp.path, **options)
       end
     end
 

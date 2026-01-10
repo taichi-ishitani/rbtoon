@@ -2,33 +2,33 @@
 
 require 'strscan'
 
-require_relative 'toonrb/version'
-require_relative 'toonrb/parse_error'
-require_relative 'toonrb/token'
-require_relative 'toonrb/nodes/base'
-require_relative 'toonrb/nodes/blank'
-require_relative 'toonrb/nodes/scalar'
-require_relative 'toonrb/nodes/array'
-require_relative 'toonrb/nodes/object'
-require_relative 'toonrb/nodes/root'
-require_relative 'toonrb/scanner'
-require_relative 'toonrb/handler'
-require_relative 'toonrb/generated_parser'
-require_relative 'toonrb/parser'
+require_relative 'rbtoon/version'
+require_relative 'rbtoon/parse_error'
+require_relative 'rbtoon/token'
+require_relative 'rbtoon/nodes/base'
+require_relative 'rbtoon/nodes/blank'
+require_relative 'rbtoon/nodes/scalar'
+require_relative 'rbtoon/nodes/array'
+require_relative 'rbtoon/nodes/object'
+require_relative 'rbtoon/nodes/root'
+require_relative 'rbtoon/scanner'
+require_relative 'rbtoon/handler'
+require_relative 'rbtoon/generated_parser'
+require_relative 'rbtoon/parser'
 
 ##
-# Toonrb: Toon decoder for Ruby
+# RbToon: Toon decoder for Ruby
 #
 # Toon[https://toonformat.dev] is a structural text format optimized for LLM input.
-# Toonrb is a Racc-based decoder gem that decodes Toon input into Ruby objects.
-module Toonrb
+# RbToon is a Racc-based decoder gem that decodes Toon input into Ruby objects.
+module RbToon
   class << self
     ##
     # Decode the given Toon string into Ruby objects.
     #
     # Example:
     #
-    #   toon = Toonrb.decode(<<~'TOON')
+    #   toon = RbToon.decode(<<~'TOON')
     #   context:
     #     task: Our favorite hikes together
     #     location: Boulder
@@ -49,15 +49,15 @@ module Toonrb
     #
     # Error Handling:
     #
-    # Toonrb::ParseError is raised when the given Toon includes errors listed in
+    # RbToon::ParseError is raised when the given Toon includes errors listed in
     # the {Toon spec}[https://github.com/toon-format/spec/blob/main/SPEC.md#14-strict-mode-errors-and-diagnostics-authoritative-checklist].
     #
     #   begin
-    #     Toonrb.decode('freends[4]: ana,Luis,sam')
-    #   rescue Toonrb::ParseError => e
+    #     RbToon.decode('freends[4]: ana,Luis,sam')
+    #   rescue RbToon::ParseError => e
     #     e
     #   end
-    #   # => #<Toonrb::ParseError: expected 4 array items, but got 3 -- filename: unknown line: 1 column: 8>
+    #   # => #<RbToon::ParseError: expected 4 array items, but got 3 -- filename: unknown line: 1 column: 8>
     #
     # Arguments:
     #
@@ -105,9 +105,9 @@ module Toonrb
     end
 
     ##
-    # Similar to +Toonrb.decode+, but the Toon string is read from the file specified by the +filename+ argument.
+    # Similar to +RbToon.decode+, but the Toon string is read from the file specified by the +filename+ argument.
     #
-    # See also Toonrb.decode.
+    # See also RbToon.decode.
     def decode_file(filename, **optargs)
       File.open(filename, 'r:bom|utf-8') do |fp|
         decode(fp, filename:, **optargs)

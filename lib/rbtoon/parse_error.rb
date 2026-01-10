@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Toonrb
+module RbToon
   ##
   # The exception class is raised when the given Toon includes errors.
   #

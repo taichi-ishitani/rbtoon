@@ -24,7 +24,7 @@ show_hash: true
 skip_tests: true
 tab_width: 8
 template_stylesheets: []
-title: "Toonrb: Toon decoder for Ruby"
+title: "RbToon: Toon decoder for Ruby"
 visibility: :protected
 warn_missing_rdoc_ref: true
 webcvs:

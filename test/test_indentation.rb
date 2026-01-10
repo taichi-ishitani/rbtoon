@@ -2,7 +2,7 @@
 
 require_relative 'test_helper'
 
-module Toonrb
+module RbToon
   class TestIndentation < TestCase
     def test_wrong_indent_spaces
       toon = <<~'TOON'

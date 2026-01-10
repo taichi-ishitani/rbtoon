@@ -2,7 +2,7 @@
 
 require_relative 'test_helper'
 
-module Toonrb
+module RbToon
   class TestVaridation < TestCase
     def test_array_size_mismatch
       toon = <<~'TOON'

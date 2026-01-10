@@ -2,7 +2,7 @@
 
 require_relative 'test_helper'
 
-module Toonrb
+module RbToon
   class TestWhiteSpace < TestCase
     def test_whitespace_tolerance
       toon = <<~'TOON'

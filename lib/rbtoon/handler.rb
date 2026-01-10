@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Toonrb
+module RbToon
   class Handler # :nodoc: all
     def initialize
       @stack = [Nodes::Root.new]

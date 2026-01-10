@@ -2,7 +2,7 @@
 
 require_relative 'test_helper'
 
-module Toonrb
+module RbToon
   class TestPathExpansion < TestCase
     def test_path_expansion
       toon = <<~'TOON'

@@ -2,7 +2,7 @@
 
 require_relative 'test_helper'
 
-module Toonrb
+module RbToon
   class TestBlankLines < TestCase
     def test_blank_lines_inside_array
       toon = <<~'TOON'

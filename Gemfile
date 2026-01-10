@@ -2,7 +2,7 @@
 
 source 'https://rubygems.org'
 
-# Specify your gem's dependencies in toonrb.gemspec
+# Specify your gem's dependencies in rbtoon.gemspec
 gemspec
 
 gem 'racc', require: false

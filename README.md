@@ -1,26 +1,26 @@
-[![Gem Version](https://badge.fury.io/rb/toonrb.svg)](https://badge.fury.io/rb/toonrb)
-[![Regression](https://github.com/taichi-ishitani/toonrb/actions/workflows/regression.yml/badge.svg)](https://github.com/taichi-ishitani/toonrb/actions/workflows/regression.yml)
-[![codecov](https://codecov.io/gh/taichi-ishitani/toonrb/graph/badge.svg?token=kT9yJlJCuD)](https://codecov.io/gh/taichi-ishitani/toonrb)
+[![Gem Version](https://badge.fury.io/rb/rbtoon.svg)](https://badge.fury.io/rb/rbtoon)
+[![Regression](https://github.com/taichi-ishitani/rbtoon/actions/workflows/regression.yml/badge.svg)](https://github.com/taichi-ishitani/rbtoon/actions/workflows/regression.yml)
+[![codecov](https://codecov.io/gh/taichi-ishitani/rbtoon/graph/badge.svg?token=P35M7RTL3W)](https://codecov.io/gh/taichi-ishitani/rbtoon)
 
 [![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/A0A231E3I)
 
-# Toonrb
+# RbToon
 
 [Toon](https://toonformat.dev) is a structural text format optimized for LLM input.
-Toonrb is a Racc-based decoder gem that decodes Toon input into Ruby objects.
+RbToon is a Racc-based decoder gem that decodes Toon input into Ruby objects.
 
 ## Installation
 
 Install the gem and add to the application's Gemfile by executing:
 
 ```bash
-bundle add toonrb
+bundle add rbtoon
 ```
 
 If bundler is not being used to manage dependencies, install the gem by executing:
 
 ```bash
-gem install toonrb
+gem install rbtoon
 ```
 
 ## Usage
@@ -28,16 +28,16 @@ gem install toonrb
 You can use the methods below to decode Toon into Ruby objects.
 
 * Decode the given Toon string
-    * `Toonrb.decode`
+    * `RbToon.decode`
 * Decode the Toon string read from the given file path
-    * `Toonrb.decode_file`
+    * `RbToon.decode_file`
 
 All hash keys are symbolized when the `symbolize_names` option is set to `true`.
 
 ```ruby
-require 'toonrb'
+require 'rbtoon'
 
-toon = Toonrb.decode(<<~'TOON', symbolize_names: true)
+toon = RbToon.decode(<<~'TOON', symbolize_names: true)
   context:
     task: Our favorite hikes together
     location: Boulder
@@ -58,14 +58,14 @@ TOON
 #    {id: 3, name: "Wildflower Loop", distanceKm: 5.1, elevationGain: 180, companion: "sam", wasSunny: true}]}
 ```
 
-The `Toonrb::ParseError` exception is raised if the given Toon includes errors listed in [here](https://github.com/toon-format/spec/blob/main/SPEC.md#14-strict-mode-errors-and-diagnostics-authoritative-checklist).
+The `RbToon::ParseError` exception is raised if the given Toon includes errors listed in [here](https://github.com/toon-format/spec/blob/main/SPEC.md#14-strict-mode-errors-and-diagnostics-authoritative-checklist).
 
 ```ruby
 begin
-  Toonrb.decode(<<~'TOON')
+  RbToon.decode(<<~'TOON')
     freends[4]: ana,Luis,sam
   TOON
-rescue Toonrb::ParseError => e
+rescue RbToon::ParseError => e
   puts e
 end
 
@@ -73,17 +73,17 @@ end
 # expected 4 array items, but got 3 -- filename: unknown line: 1 column: 8
 ```
 
-For more details about APIs, please visit the [documentation page](https://taichi-ishitani.github.io/toonrb/).
+For more details about APIs, please visit the [documentation page](https://taichi-ishitani.github.io/rbtoon/).
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/taichi-ishitani/toonrb.
+Bug reports and pull requests are welcome on GitHub at https://github.com/taichi-ishitani/rbtoon.
 
-* [Issue Tracker](https://github.com/taichi-ishitani/toonrb/issues)
-* [Pull Request](https://github.com/taichi-ishitani/toonrb/pulls)
-* [Discussion](https://github.com/taichi-ishitani/toonrb/discussions)
+* [Issue Tracker](https://github.com/taichi-ishitani/rbtoon/issues)
+* [Pull Request](https://github.com/taichi-ishitani/rbtoon/pulls)
+* [Discussion](https://github.com/taichi-ishitani/rbtoon/discussions)
 
 ## License
 
 Copyright &copy; 2025 Taichi Ishitani.
-Toonrb is licensed under the terms of the [MIT License](https://opensource.org/licenses/MIT), see [LICENSE.txt](LICENSE.txt) for further details.
+RbToon is licensed under the terms of the [MIT License](https://opensource.org/licenses/MIT), see [LICENSE.txt](LICENSE.txt) for further details.

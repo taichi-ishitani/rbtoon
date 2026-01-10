@@ -2,7 +2,7 @@
 
 require_relative 'test_helper'
 
-module Toonrb
+module RbToon
   class TestArray < TestCase
     def test_array_nested
       toon = <<~'TOON'

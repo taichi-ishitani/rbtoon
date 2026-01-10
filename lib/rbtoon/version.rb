@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-module Toonrb
+module RbToon
   ##
-  # Version string of Toonrb.
+  # Version string of RbToon.
   VERSION = '0.1.0'
 end

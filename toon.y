@@ -1,4 +1,4 @@
-class Toonrb::GeneratedParser
+class RbToon::GeneratedParser
 token
   L_BRACKET
   R_BRACKET

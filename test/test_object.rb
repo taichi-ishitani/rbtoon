@@ -2,7 +2,7 @@
 
 require_relative 'test_helper'
 
-module Toonrb
+module RbToon
   class TestObject < TestCase
     def test_object
       toon = decode_toon(<<~'TOON')

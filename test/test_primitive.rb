@@ -2,7 +2,7 @@
 
 require_relative 'test_helper'
 
-module Toonrb
+module RbToon
   class TestPrimitive < TestCase
     def test_true
       assert_equal(load_json('true'), decode_toon('true'))
