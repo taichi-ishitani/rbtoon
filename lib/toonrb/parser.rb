@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Toonrb
-  class Parser < GeneratedParser
+  class Parser < GeneratedParser # :nodoc:
     include RaiseParseError
 
     def initialize(scanner, handler, debug: false)

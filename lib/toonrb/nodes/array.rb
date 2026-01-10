@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Toonrb
+module Toonrb # :nodoc: all
   module Nodes
     class Array < StructureBase
       def initialize(parent, position, size)

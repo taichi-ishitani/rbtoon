@@ -10,6 +10,7 @@ gem 'racc', require: false
 group 'development_common' do
   gem 'bundler', require: false
   gem 'rake', require: false
+  gem 'rdoc', require: false
 end
 
 group 'development_test' do

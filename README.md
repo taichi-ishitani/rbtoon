@@ -27,9 +27,9 @@ gem install toonrb
 You can use the methods below to decode Toon into Ruby objects.
 
 * Decode the given Toon string
-  * `Toonrb.decode`
+    * `Toonrb.decode`
 * Decode the Toon string read from the given file path
-  * `Toonrb.decode_file`
+    * `Toonrb.decode_file`
 
 All hash keys are symbolized when the `symbolize_names` option is set to `true`.
 
@@ -57,7 +57,7 @@ TOON
 #    {id: 3, name: "Wildflower Loop", distanceKm: 5.1, elevationGain: 180, companion: "sam", wasSunny: true}]}
 ```
 
-Toonrb will raise the `Toonrb::ParseError` exception if the given Toon includes errors listed in [here](https://github.com/toon-format/spec/blob/main/SPEC.md#14-strict-mode-errors-and-diagnostics-authoritative-checklist).
+The `Toonrb::ParseError` exception is raised if the given Toon includes errors listed in [here](https://github.com/toon-format/spec/blob/main/SPEC.md#14-strict-mode-errors-and-diagnostics-authoritative-checklist).
 
 ```ruby
 begin

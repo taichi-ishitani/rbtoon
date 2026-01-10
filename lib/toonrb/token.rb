@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Toonrb
-  class Position
+  class Position # :nodoc:
     def initialize(filename, line, column)
       @filename = filename
       @line = line
@@ -13,11 +13,11 @@ module Toonrb
     attr_reader :column
 
     def to_s
-      "filename: #{filename || 'unknown'} line: #{line} column: #{column}"
+      "filename: #{filename} line: #{line} column: #{column}"
     end
   end
 
-  class Token
+  class Token # :nodoc:
     def initialize(text, kind, depth, position)
       @text = text
       @kind = kind

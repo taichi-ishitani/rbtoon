@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Toonrb
-  class Handler
+  class Handler # :nodoc: all
     def initialize
       @stack = [Nodes::Root.new]
     end

@@ -3,6 +3,9 @@
 require 'bundler/gem_tasks'
 require 'minitest/test_task'
 
+CLEAN << 'coverage'
+CLEAN << 'doc'
+
 Minitest::TestTask.create :test do |t|
   t.test_prelude = 'require "simplecov_prelude"'
 end
@@ -25,6 +28,11 @@ unless ENV.key?('CI')
   end
 
   task test: ['lib/toonrb/generated_parser.rb']
+end
+
+require 'rdoc/task'
+RDoc::Task.new do |t|
+  t.rdoc_dir = 'doc'
 end
 
 task default: :test

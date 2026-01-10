@@ -1,0 +1,30 @@
+---
+encoding: UTF-8
+static_path: []
+rdoc_include: []
+page_dir:
+apply_default_exclude: true
+autolink_excluded_words: []
+canonical_root:
+charset: UTF-8
+class_module_path_prefix:
+embed_mixins: false
+exclude:
+  - "generated_parser.*"
+file_path_prefix:
+footer_content:
+hyperlink_all: false
+line_numbers: true
+locale_dir: locale
+locale_name:
+main_page: README.md
+markup: rdoc
+output_decoration: true
+show_hash: true
+skip_tests: true
+tab_width: 8
+template_stylesheets: []
+title: "Toonrb: Toon decoder for Ruby"
+visibility: :protected
+warn_missing_rdoc_ref: true
+webcvs:

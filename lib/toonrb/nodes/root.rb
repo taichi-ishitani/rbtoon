@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Toonrb
+module Toonrb # :nodoc: all
   module Nodes
     class Root < Array
       def initialize

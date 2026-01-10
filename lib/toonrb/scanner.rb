@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Toonrb
-  class Scanner
+  class Scanner # :nodoc:
     include RaiseParseError
 
     NL = / *\n/
